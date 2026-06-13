@@ -1,7 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, HttpException } from '@nestjs/common';
 import { InboundService } from './inbound.service';
 import { BinLocationService } from './binLocation.service';
+
+function getExceptionMessage(e: unknown): string {
+  if (e instanceof HttpException) {
+    const resp = e.getResponse();
+    if (typeof resp === 'string') return resp;
+    if (typeof resp === 'object' && resp !== null && 'message' in resp) {
+      const m = (resp as { message: unknown }).message;
+      return Array.isArray(m) ? m.join('; ') : String(m);
+    }
+    return e.message;
+  }
+  return (e as Error).message;
+}
 
 describe('InboundService - 上架容量校验', () => {
   let inboundService: InboundService;
@@ -39,7 +52,7 @@ describe('InboundService - 上架容量校验', () => {
         expect.fail('应该抛出 BadRequestException');
       } catch (e: any) {
         expect(e).toBeInstanceOf(BadRequestException);
-        const message = typeof e.response === 'string' ? e.response : e.response?.message;
+        const message = getExceptionMessage(e);
         expect(message).toContain('容量不足');
         expect(message).toContain(String(remaining));
         expect(message).toContain(String(requiredQty));
@@ -72,23 +85,20 @@ describe('InboundService - 上架容量校验', () => {
         expect.fail('应该抛出 BadRequestException');
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
-        expect(
-          typeof (e as any).response === 'string'
-            ? (e as any).response
-            : (e as any).response?.message
-        ).toContain('已上架');
+        const message = getExceptionMessage(e);
+        expect(message).toContain('已上架');
       }
     });
 
     it('订单所有明细都上架后订单状态变为 Shelved', () => {
-      const order1 = (inboundService as any).rows.find((o: any) => o.id === 1);
+      const order1 = (inboundService as unknown as { rows: any[] }).rows.find((o: any) => o.id === 1);
       const unShelvedCount = order1.items.filter((i: any) => !i.shelved).length;
       expect(unShelvedCount).toBeGreaterThan(0);
 
       inboundService.shelfItem(1, 1, 2);
       inboundService.shelfItem(1, 2, 4);
 
-      const orderAfter = (inboundService as any).rows.find((o: any) => o.id === 1);
+      const orderAfter = (inboundService as unknown as { rows: any[] }).rows.find((o: any) => o.id === 1);
       expect(orderAfter.status).toBe('Shelved');
     });
 
@@ -109,7 +119,7 @@ describe('InboundService - 上架容量校验', () => {
         inboundService.shelfItem(1, 2, 3);
       } catch {}
 
-      const order = (inboundService as any).rows.find((o: any) => o.id === 1);
+      const order = (inboundService as unknown as { rows: any[] }).rows.find((o: any) => o.id === 1);
       const item = order.items.find((i: any) => i.id === 2);
       expect(item.shelved).toBe(false);
     });

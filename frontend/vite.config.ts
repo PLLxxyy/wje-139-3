@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
@@ -7,6 +8,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}']
-  }
+    include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
+  },
 });

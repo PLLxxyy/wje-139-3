@@ -70,6 +70,7 @@ describe('BinLocationService - 库位容量管理', () => {
       service.findOne(1);
       service.updateOccupancy(1, -76);
       const bin = service.findOne(1);
+      expect(bin.occupancy).toBe(0);
       expect(bin.status).toBe('Available');
     });
 
