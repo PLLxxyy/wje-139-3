@@ -5,7 +5,7 @@ export class BinLocationService {
     { id: 1, area: 'A', rack: 'R01', level: 2, column: 3, capacity: 100, occupancy: 76, storageRequirement: 'ColdChain', status: 'Occupied' },
     { id: 2, area: 'B', rack: 'R08', level: 1, column: 6, capacity: 200, occupancy: 34, storageRequirement: 'Normal', status: 'Available' },
     { id: 3, area: 'A', rack: 'R02', level: 3, column: 5, capacity: 150, occupancy: 140, storageRequirement: 'Normal', status: 'Occupied' },
-    { id: 4, area: 'C', rack: 'R03', level: 1, column: 2, capacity: 80, occupancy: 10, storageRequirement: 'Hazardous', status: 'Available' },
+    { id: 4, area: 'C', rack: 'R03', level: 1, column: 2, capacity: 120, occupancy: 10, storageRequirement: 'Hazardous', status: 'Available' },
   ];
   findAll() { return this.rows; }
   findOne(id: number) {

@@ -71,6 +71,7 @@ import { inboundApi } from '../api/inbound';
 import { binLocationApi } from '../api/binLocation';
 import StatCard from '../components/common/StatCard.vue';
 import OccupancyRing from '../components/common/OccupancyRing.vue';
+import { getBinUsagePercent, isHighUsage } from '../utils/capacity';
 import type { InboundOrder, BinLocation } from '../types';
 
 const rows = ref<InboundOrder[]>([]);
@@ -90,11 +91,10 @@ const overallUsagePercent = computed(() =>
     : 0
 );
 
-const getUsagePercent = (bin: BinLocation) =>
-  bin.capacity > 0 ? Math.round((bin.occupancy / bin.capacity) * 100) : 0;
+const getUsagePercent = (bin: BinLocation) => Math.round(getBinUsagePercent(bin));
 
 const highUsageBins = computed(() =>
-  bins.value.filter(bin => getUsagePercent(bin) > 90)
+  bins.value.filter(bin => isHighUsage(bin))
 );
 
 onMounted(async () => {

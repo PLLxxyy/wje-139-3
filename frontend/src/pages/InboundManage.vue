@@ -113,6 +113,7 @@ import { inboundApi } from '../api/inbound';
 import { binLocationApi } from '../api/binLocation';
 import StatusBadge from '../components/common/StatusBadge.vue';
 import StepIndicator from '../components/common/StepIndicator.vue';
+import { getBinUsagePercent, getRemainingCapacity, isCapacitySufficient as checkCapacity, canShelf as checkCanShelf } from '../utils/capacity';
 import type { InboundOrder, InboundItem, BinLocation } from '../types';
 
 const rows = ref<InboundOrder[]>([]);
@@ -128,18 +129,12 @@ const selectedBin = computed(() =>
   bins.value.find((b) => b.id === selectedBinId.value)
 );
 
-const getBinUsagePercent = (bin: BinLocation) =>
-  bin.capacity > 0 ? (bin.occupancy / bin.capacity) * 100 : 0;
-
-const getRemainingCapacity = (bin: BinLocation) => bin.capacity - bin.occupancy;
-
 const isCapacitySufficient = computed(() => {
-  if (!selectedBin.value || !currentItem.value) return false;
-  return getRemainingCapacity(selectedBin.value) >= currentItem.value.actualQty;
+  return checkCapacity(selectedBin.value, currentItem.value?.actualQty ?? 0);
 });
 
 const canShelf = computed(() =>
-  selectedBinId.value !== null && isCapacitySufficient.value
+  checkCanShelf(selectedBinId.value, selectedBin.value, currentItem.value?.actualQty ?? 0)
 );
 
 const openShelfDialog = (order: InboundOrder, item: InboundItem) => {
