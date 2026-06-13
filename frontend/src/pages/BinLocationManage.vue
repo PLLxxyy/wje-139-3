@@ -1,8 +1,25 @@
 <template>
   <PageShell title="库位管理">
-    <div class="grid grid-3"><el-card v-for="bin in rows" :key="bin.id"><h3>{{ bin.area }}-{{ bin.rack }}-{{ bin.level }}{{ bin.column }}</h3><OccupancyRing :value="bin.occupancy" /><StatusBadge :status="bin.status" /></el-card></div>
+    <div class="grid grid-3">
+      <el-card
+        v-for="bin in rows"
+        :key="bin.id"
+        :class="['bin-card', getUsagePercent(bin) > 90 ? 'bin-high-usage' : '']"
+      >
+        <h3 class="bin-title">
+          {{ bin.area }}-{{ bin.rack }}-{{ bin.level }}{{ bin.column }}
+        </h3>
+        <OccupancyRing :value="getUsagePercent(bin)" />
+        <StatusBadge :status="getUsagePercent(bin) > 90 ? 'HighUsage' : bin.status" />
+        <div class="bin-detail">
+          <span>容量: {{ bin.capacity }}</span>
+          <span>已用: {{ bin.occupancy }}</span>
+        </div>
+      </el-card>
+    </div>
   </PageShell>
 </template>
+
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import PageShell from './PageShell.vue';
@@ -10,6 +27,38 @@ import { binLocationApi } from '../api/binLocation';
 import OccupancyRing from '../components/common/OccupancyRing.vue';
 import StatusBadge from '../components/common/StatusBadge.vue';
 import type { BinLocation } from '../types';
+
 const rows = ref<BinLocation[]>([]);
-onMounted(async () => { rows.value = await binLocationApi.list<BinLocation>().catch(() => []); });
+
+const getUsagePercent = (bin: BinLocation) =>
+  bin.capacity > 0 ? Math.round((bin.occupancy / bin.capacity) * 100) : 0;
+
+onMounted(async () => {
+  rows.value = await binLocationApi.list<BinLocation>().catch(() => []);
+});
 </script>
+
+<style scoped>
+.bin-card {
+  text-align: center;
+  transition: box-shadow 0.3s;
+}
+.bin-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.bin-high-usage {
+  border: 2px solid #dc2626;
+}
+.bin-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #303133;
+}
+.bin-detail {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 12px;
+  color: #909399;
+}
+</style>
